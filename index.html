@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Bagi Hasil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            box-sizing: border-box;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 100%;
+            overflow-x: hidden;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .currency-info {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            white-space: nowrap;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #ownerSection, #investorSection {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            width: 100%;
+        }
+        .owner-row, .investor-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .owner-row input, .investor-row input {
+            flex: 1;
+            min-width: 200px;
+            margin: 2px;
+        }
+        .remove-btn {
+            background-color: #ff4444;
+            min-width: 80px;
+        }
+        .remove-btn:hover {
+            background-color: #cc0000;
+        }
+        #results {
+            margin-top: 20px;
+            width: 100%;
+        }
+        .result-row, .owner-result {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            width: 100%;
+            word-wrap: break-word;
+        }
+        .owner-result {
+            background-color: #e3f2fd;
+        }
+        .total-summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .exchange-rate-info {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        /* Responsif untuk layar kecil */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 10px;
+            }
+            .owner-row, .investor-row {
+                flex-direction: column;
+            }
+            .owner-row input, .investor-row input {
+                width: 100%;
+                min-width: unset;
+            }
+            button {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kalkulator Bagi Hasil</h1>
+        
+        <div class="input-group">
+            <label for="netProfit">Net Laba (USD $):</label>
+            <input type="number" id="netProfit" min="0" step="0.01">
+            <div class="currency-info">Masukkan laba dalam Dollar Amerika (USD)</div>
+        </div>
+
+        <div class="input-group">
+            <label for="exchangeRate">Kurs USD ke IDR (Rp):</label>
+            <input type="number" id="exchangeRate" min="0" step="100" value="15000">
+            <div class="currency-info">Masukkan nilai kurs 1 USD = berapa Rupiah</div>
+        </div>
+
+        <div id="ownerSection">
+            <h3>Data Pemilik Usaha</h3>
+            <div id="ownerInputs"></div>
+            <button onclick="addOwner()">Tambah Pemilik</button>
+        </div>
+
+        <div id="investorSection">
+            <h3>Data Investor</h3>
+            <div id="investorInputs"></div>
+            <button onclick="addInvestor()">Tambah Investor</button>
+        </div>
+
+        <button onclick="calculateSharing()">Hitung Bagi Hasil</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let investorCount = 0;
+        let ownerCount = 0;
+
+        function addOwner() {
+            ownerCount++;
+            const div = document.createElement('div');
+            div.className = 'owner-row';
+            div.innerHTML = `
+                <input type="text" placeholder="Nama Pemilik ${ownerCount}" class="owner-name">
+                <input type="number" placeholder="Modal Pemilik ${ownerCount} (Rp)" class="owner-modal" min="0" step="1000">
+                <button class="remove-btn" onclick="removeOwner(this)">Hapus</button>
+            `;
+            document.getElementById('ownerInputs').appendChild(div);
+        }
+
+        function removeOwner(button) {
+            button.parentElement.remove();
+        }
+
+        function addInvestor() {
+            investorCount++;
+            const div = document.createElement('div');
+            div.className = 'investor-row';
+            div.innerHTML = `
+                <input type="text" placeholder="Nama Investor ${investorCount}" class="investor-name">
+                <input type="number" placeholder="Modal Investor ${investorCount} (Rp)" class="modal-input" min="0" step="1000">
+                <input type="number" placeholder="Persentase Bagi Hasil (%)" class="percentage-input" min="0" max="100" step="0.1">
+                <button class="remove-btn" onclick="removeInvestor(this)">Hapus</button>
+            `;
+            document.getElementById('investorInputs').appendChild(div);
+        }
+
+        function removeInvestor(button) {
+            button.parentElement.remove();
+        }
+
+        function calculateSharing() {
+            const netProfitUSD = parseFloat(document.getElementById('netProfit').value) || 0;
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value) || 15000;
+            const netProfitIDR = netProfitUSD * exchangeRate;
+            
+            const owners = document.getElementsByClassName('owner-row');
+            const investors = document.getElementsByClassName('investor-row');
+            const results = document.getElementById('results');
+            results.innerHTML = '<h3>Hasil Perhitungan:</h3>';
+
+            // Menampilkan informasi kurs dan konversi
+            const exchangeInfo = document.createElement('div');
+            exchangeInfo.className = 'exchange-rate-info';
+            exchangeInfo.innerHTML = `
+                <p><strong>Informasi Konversi:</strong></p>
+                <p>Net Laba: $ ${netProfitUSD.toLocaleString('en-US')} USD</p>
+                <p>Kurs: Rp ${exchangeRate.toLocaleString('id-ID')} /USD</p>
+                <p>Net Laba dalam Rupiah: Rp ${netProfitIDR.toLocaleString('id-ID')}</p>
+            `;
+            results.appendChild(exchangeInfo);
+
+            // Mengumpulkan data pemilik dan investor
+            let totalModal = 0;
+            let ownersData = [];
+            let investorsData = [];
+
+            // Data pemilik
+            for (let own of owners) {
+                const name = own.getElementsByClassName('owner-name')[0].value || `Pemilik ${ownersData.length + 1}`;
+                const modal = parseFloat(own.getElementsByClassName('owner-modal')[0].value) || 0;
+                totalModal += modal;
+                ownersData.push({ name, modal });
+            }
+
+            // Data investor
+            for (let inv of investors) {
+                const name = inv.getElementsByClassName('investor-name')[0].value || `Investor ${investorsData.length + 1}`;
+                const modal = parseFloat(inv.getElementsByClassName('modal-input')[0].value) || 0;
+                const percentage = parseFloat(inv.getElementsByClassName('percentage-input')[0].value) || 0;
+                totalModal += modal;
+                investorsData.push({ name, modal, percentage });
+            }
+
+            // Menghitung bagi hasil
+            results.appendChild(document.createElement('hr'));
+            results.innerHTML += '<h4>Bagi Hasil Pemilik Usaha:</h4>';
+
+            let totalBagiHasilPemilik = 0;
+            ownersData.forEach((owner, index) => {
+                const proporsi = owner.modal / totalModal;
+                const bagiHasilDasar = netProfitIDR * proporsi;
+
+                const ownerDiv = document.createElement('div');
+                ownerDiv.className = 'owner-result';
+                ownerDiv.innerHTML = `
+                    <p><strong>${owner.name}:</strong></p>
+                    <p>Modal: Rp ${owner.modal.toLocaleString('id-ID')}</p>
+                    <p>Proporsi Modal: ${(proporsi * 100).toFixed(2)}%</p>
+                    <p>Bagi Hasil: Rp ${bagiHasilDasar.toLocaleString('id-ID')}</p>
+                `;
+                results.appendChild(ownerDiv);
+                totalBagiHasilPemilik += bagiHasilDasar;
+            });
+
+            results.innerHTML += '<h4>Bagi Hasil Investor:</h4>';
+            let totalBagiHasilInvestor = 0;
+            investorsData.forEach((investor, index) => {
+                const proporsi = investor.modal / totalModal;
+                const bagiHasilDasar = netProfitIDR * proporsi;
+                const bagiHasilAkhir = bagiHasilDasar * (investor.percentage / 100);
+                totalBagiHasilInvestor += bagiHasilAkhir;
+
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-row';
+                resultDiv.innerHTML = `
+                    <p><strong>${investor.name}:</strong></p>
+                    <p>Modal: Rp ${investor.modal.toLocaleString('id-ID')}</p>
+                    <p>Proporsi Modal: ${(proporsi * 100).toFixed(2)}%</p>
+                    <p>Persentase Bagi Hasil: ${investor.percentage}%</p>
+                    <p>Bagi Hasil Dasar: Rp ${bagiHasilDasar.toLocaleString('id-ID')}</p>
+                    <p>Bagi Hasil Akhir: Rp ${bagiHasilAkhir.toLocaleString('id-ID')}</p>
+                `;
+                results.appendChild(resultDiv);
+            });
+
+            // Menghitung sisa untuk pemilik
+            const sisaUntukPemilik = netProfitIDR - totalBagiHasilInvestor;
+
+            // Menambahkan ringkasan total
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'total-summary';
+            summaryDiv.innerHTML = `
+                <p><strong>Ringkasan Total:</strong></p>
+                <p>Total Modal: Rp ${totalModal.toLocaleString('id-ID')}</p>
+                <p>Total Bagi Hasil Investor: Rp ${totalBagiHasilInvestor.toLocaleString('id-ID')}</p>
+                <p>Total Bagi Hasil Pemilik: Rp ${totalBagiHasilPemilik.toLocaleString('id-ID')}</p>
+                <p>Sisa Laba untuk Pemilik: Rp ${sisaUntukPemilik.toLocaleString('id-ID')}</p>
+                <p>Total Distribusi: Rp ${(totalBagiHasilInvestor + sisaUntukPemilik).toLocaleString('id-ID')}</p>
+            `;
+            results.appendChild(summaryDiv);
+        }
+
+        // Tambahkan pemilik dan investor pertama secara otomatis
+        addOwner();
+        addInvestor();
+    </script>
+</body>
+</html>
